@@ -712,6 +712,33 @@ function jsDay2MenuDay(jsDay) {
   return jsDay === 0 ? 6 : jsDay - 1; // Sun→6, Mon→0 ... Sat→5
 }
 
+// Meal windows — defined here so getCurrentMeal() and state init can use them
+const MEAL_WINDOWS = {
+  breakfast: { start: [7,  0],  end: [9,  30] },
+  lunch:     { start: [12, 0],  end: [14, 20] },
+  snack:     { start: [16, 30], end: [18, 15] },
+  dinner:    { start: [19, 0],  end: [21, 30] },
+};
+
+// Returns the meal that should be active right now based on current time
+function getCurrentMeal() {
+  const now = today.getHours() * 60 + today.getMinutes();
+  const order = ['breakfast', 'lunch', 'snack', 'dinner'];
+  for (const meal of order) {
+    const w = MEAL_WINDOWS[meal];
+    const start = w.start[0] * 60 + w.start[1];
+    const end   = w.end[0]   * 60 + w.end[1];
+    if (now >= start && now <= end) return meal;
+  }
+  const firstStart = MEAL_WINDOWS.breakfast.start[0] * 60 + MEAL_WINDOWS.breakfast.start[1];
+  if (now < firstStart) return 'breakfast';
+  for (const meal of order) {
+    const start = MEAL_WINDOWS[meal].start[0] * 60 + MEAL_WINDOWS[meal].start[1];
+    if (now < start) return meal;
+  }
+  return 'dinner';
+}
+
 // isWeekend for shuttle schedule selection
 function isWeekendDay(date) {
   const d = date.getDay();
@@ -746,14 +773,6 @@ function renderMenu() {
   const timing   = document.getElementById('mealTiming');
 
   timing.textContent = `⏰ ${MEAL_TIMINGS[meal]}`;
-
-  // Update Oota accordion subtitle
-  const subtitle = document.getElementById('ootaSubtitle');
-  if (subtitle) {
-    const mealLabels = { breakfast: '☀️ Breakfast', lunch: '🌤️ Lunch', snack: '🍎 Snack', dinner: '🌙 Dinner' };
-    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    subtitle.textContent = `${days[day]} · ${mealLabels[meal]} · ${MEAL_TIMINGS[meal]}`;
-  }
 
   // Show LIVE badge if this meal is currently happening
   const liveBadge = document.getElementById('liveMealBadge');
@@ -799,18 +818,6 @@ function dietLabel(diet) {
 function initMenu() {
   const todayMenuDay = jsDay2MenuDay(today.getDay());
 
-  // ── Oota accordion ──
-  const ootaToggle  = document.getElementById('ootaToggle');
-  const ootaBody    = document.getElementById('ootaBody');
-  const ootaChevron = document.getElementById('ootaChevron');
-  let ootaOpen = false;
-
-  ootaToggle.addEventListener('click', () => {
-    ootaOpen = !ootaOpen;
-    ootaBody.classList.toggle('hidden', !ootaOpen);
-    ootaChevron.style.transform = ootaOpen ? 'rotate(180deg)' : '';
-  });
-
   // Set active day button + today ring
   document.querySelectorAll('.day-btn').forEach(btn => {
     const d = parseInt(btn.dataset.day);
@@ -842,46 +849,10 @@ function activateMealTab(meal) {
     t.classList.toggle('active', t.dataset.meal === meal);
   });
 }
-// Logic: during a meal window → that meal; between windows → next upcoming; past all → dinner
-function getCurrentMeal() {
-  const now = today.getHours() * 60 + today.getMinutes();
-  const order = ['breakfast', 'lunch', 'snack', 'dinner'];
-
-  // If currently inside a window, return it
-  for (const meal of order) {
-    const w = MEAL_WINDOWS[meal];
-    const start = w.start[0] * 60 + w.start[1];
-    const end   = w.end[0]   * 60 + w.end[1];
-    if (now >= start && now <= end) return meal;
-  }
-
-  // If before first meal, return breakfast
-  const firstStart = MEAL_WINDOWS.breakfast.start[0] * 60 + MEAL_WINDOWS.breakfast.start[1];
-  if (now < firstStart) return 'breakfast';
-
-  // Between meals: find the next upcoming one
-  for (const meal of order) {
-    const start = MEAL_WINDOWS[meal].start[0] * 60 + MEAL_WINDOWS[meal].start[1];
-    if (now < start) return meal;
-  }
-
-  // Past all meals for the day → dinner
-  return 'dinner';
-}
-
 
 // ─────────────────────────────────────────
 // 4. FOOD COMMENTS
 // ─────────────────────────────────────────
-
-// Meal windows: [startH, startM, endH, endM]
-// Comments open at meal start, auto-delete 2h after meal end
-const MEAL_WINDOWS = {
-  breakfast: { start: [7,  0],  end: [9,  30] },
-  lunch:     { start: [12, 0],  end: [14, 20] },
-  snack:     { start: [16, 30], end: [18, 15] },
-  dinner:    { start: [19, 0],  end: [21, 30] },
-};
 
 // Storage key per meal+date: "apu-comments-2026-10-24-lunch"
 function commentKey(dateStr, meal) {
@@ -1019,18 +990,6 @@ function timeAgoComment(ts) {
 }
 
 function initComments() {
-  // Accordion toggle
-  const toggle   = document.getElementById('commentToggle');
-  const body     = document.getElementById('commentBody');
-  const chevron  = document.getElementById('commentChevron');
-  let isOpen = false;
-
-  toggle.addEventListener('click', () => {
-    isOpen = !isOpen;
-    body.classList.toggle('hidden', !isOpen);
-    chevron.style.transform = isOpen ? 'rotate(180deg)' : '';
-  });
-
   // Star rating interaction
   const stars = document.querySelectorAll('.star-btn');
   const label = document.getElementById('ratingLabel');
