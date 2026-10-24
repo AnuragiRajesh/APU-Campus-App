@@ -824,6 +824,8 @@ let state = {
   },
 };
 
+let userSelectedMainTab = false;
+
 
 // ─────────────────────────────────────────
 // 3. FOOD MENU
@@ -1424,29 +1426,30 @@ function initMainTabs() {
   const tabs   = document.querySelectorAll('.main-tab');
   const panels = document.querySelectorAll('.tab-panel');
 
-  function switchTab(tabId) {
-    // Update tab button styles
-    tabs.forEach(t => {
-      const isActive = t.dataset.tab === tabId;
-      t.classList.toggle('tab-active', isActive);
-      t.classList.toggle('text-gray-400', !isActive);
-      t.classList.toggle('dark:text-gray-500', !isActive);
-    });
-
-    // Show the matching panel, hide the rest
-    panels.forEach(p => {
-      const isActive = p.id === `panel-${tabId}`;
-      p.classList.toggle('hidden', !isActive);
-      if (isActive) p.classList.add('fade-up');
-    });
-  }
-
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    tab.addEventListener('click', () => {
+      userSelectedMainTab = true;
+      switchMainTab(tab.dataset.tab);
+    });
   });
 
   // Default: shuttle
-  switchTab('shuttle');
+  switchMainTab('shuttle');
+}
+
+function switchMainTab(tabId) {
+  document.querySelectorAll('.main-tab').forEach(tab => {
+    const isActive = tab.dataset.tab === tabId;
+    tab.classList.toggle('tab-active', isActive);
+    tab.classList.toggle('text-gray-400', !isActive);
+    tab.classList.toggle('dark:text-gray-500', !isActive);
+  });
+
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    const isActive = panel.id === `panel-${tabId}`;
+    panel.classList.toggle('hidden', !isActive);
+    if (isActive) panel.classList.add('fade-up');
+  });
 }
 
 
@@ -1673,6 +1676,9 @@ async function refreshCabPosts() {
     cabPostsCache = await loadCabPosts();
     setSyncStatus('cab-sync-status', '');
     renderCabPosts(document.getElementById('cab-filter').value);
+    if (cabPostsCache.some(post => !isPostExpired(post)) && !userSelectedMainTab) {
+      switchMainTab('cabshare');
+    }
   } catch (error) {
     setSyncStatus('cab-sync-status', error.message, true);
   }
@@ -1709,6 +1715,16 @@ function timeAgo(ts) {
 }
 
 function initCabShare() {
+  const panel = document.getElementById('panel-cabshare');
+  const postForm = document.getElementById('cab-request-form');
+  const filterBar = document.getElementById('cab-filter').parentElement;
+  const postsList = document.getElementById('cab-posts');
+  const syncStatus = document.getElementById('cab-sync-status');
+  const emptyNotice = document.getElementById('cab-empty');
+  [filterBar, postsList, syncStatus, emptyNotice].forEach(element => {
+    panel.insertBefore(element, postForm);
+  });
+
   // Set today as default date
   const dateInput = document.getElementById('cab-date');
   dateInput.value = new Date().toISOString().split('T')[0];

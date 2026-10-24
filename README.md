@@ -83,6 +83,7 @@ university-app/
 ├── index.html        — Single page, all four tabs
 ├── style.css         — Custom CSS (only things Tailwind can't do)
 ├── app.js            — All data and interactive logic
+├── favicon.svg        — Browser tab icon
 ├── api/jsonbin.js     — Server-side JSONBin proxy for Vercel
 └── screenshoots/     — App screenshots
 ```
