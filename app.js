@@ -795,12 +795,12 @@ function renderMenu() {
         <p class="text-xs mt-1">Check the notice board or ask the cafeteria staff</p>
        </div>`
     : dishes.map((d, i) => `
-    <div class="menu-card bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 fade-up"
+    <div class="menu-card bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700 fade-up"
          style="animation-delay:${i * 50}ms">
-      <span class="text-3xl mb-2 block">${d.emoji}</span>
-      <p class="font-bold text-sm mb-1">${d.name}</p>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3 leading-relaxed">${d.desc}</p>
-      <span class="diet-tag text-xs font-bold px-2.5 py-1 rounded-full ${dietClass(d.diet)}">${dietLabel(d.diet)}</span>
+      <span class="text-xl mb-1.5 block">${d.emoji}</span>
+      <p class="font-bold text-xs mb-0.5 leading-snug">${d.name}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 leading-snug">${d.desc}</p>
+      <span class="diet-tag text-xs font-bold px-2 py-0.5 rounded-full ${dietClass(d.diet)}">${dietLabel(d.diet)}</span>
     </div>`).join('')
   );
 
