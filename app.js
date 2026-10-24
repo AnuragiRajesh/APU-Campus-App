@@ -16,17 +16,35 @@ async function readJsonBin(binId, fallback) {
   const url = `${PROXY_API_URL}?binId=${encodeURIComponent(binId)}`;
   const response = await fetchJsonBin(url, { cache: 'no-store' }, 'read');
   const payload = await response.json();
-  return payload.record ?? fallback;
+  return decodeJsonBinRecord(payload.record ?? fallback);
 }
 
 async function writeJsonBin(binId, record) {
   const url = `${PROXY_API_URL}?binId=${encodeURIComponent(binId)}`;
+  const body = JSON.stringify(encodeJsonBinRecord(record));
+  if (!body) throw new Error('Cannot save an empty JSONBin request body.');
   const response = await fetchJsonBin(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(record),
+    body,
   }, 'write');
   return response.json();
+}
+
+function encodeJsonBinRecord(record) {
+  if (Array.isArray(record) && record.length === 0) {
+    return { __apuEmptyRecord: 'array' };
+  }
+  if (record && !Array.isArray(record) && Object.keys(record).length === 0) {
+    return { __apuEmptyRecord: 'object' };
+  }
+  return record;
+}
+
+function decodeJsonBinRecord(record) {
+  if (record?.__apuEmptyRecord === 'array') return [];
+  if (record?.__apuEmptyRecord === 'object') return {};
+  return record;
 }
 
 async function fetchJsonBin(url, options, operation) {

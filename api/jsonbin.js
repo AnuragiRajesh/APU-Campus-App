@@ -4,6 +4,30 @@ const ALLOWED_BIN_IDS = new Set([
   '6adcec93ac6210605a4f08ac',
 ]);
 
+async function getRequestRecord(req) {
+  let body = req.body;
+  if (body === undefined) {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(Buffer.from(chunk));
+    body = Buffer.concat(chunks).toString('utf8');
+  }
+
+  if (Buffer.isBuffer(body)) body = body.toString('utf8');
+  if (typeof body === 'string') {
+    if (!body.trim()) throw new Error('Request body is empty.');
+    try {
+      body = JSON.parse(body);
+    } catch {
+      throw new Error('Request body must be valid JSON.');
+    }
+  }
+
+  if (!body || typeof body !== 'object') {
+    throw new Error('A JSON object or array is required.');
+  }
+  return body;
+}
+
 module.exports = async function handler(req, res) {
   const masterKey = process.env.JSONBIN_MASTER_KEY;
   if (!masterKey) {
@@ -31,15 +55,15 @@ module.exports = async function handler(req, res) {
   if (req.method === 'PUT') {
     let record;
     try {
-      record = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    } catch {
-      return res.status(400).json({ error: 'Request body must be valid JSON.' });
-    }
-    if (!record || typeof record !== 'object') {
-      return res.status(400).json({ error: 'A JSON object or array is required.' });
+      record = await getRequestRecord(req);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
     }
     options.method = 'PUT';
     options.body = JSON.stringify(record);
+    if (!options.body) {
+      return res.status(400).json({ error: 'Request body serialized to an empty value.' });
+    }
   }
 
   try {
