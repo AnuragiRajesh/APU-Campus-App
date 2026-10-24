@@ -1830,6 +1830,8 @@ function showCabError(el, msg) {
 // ─────────────────────────────────────────
 function initCoffee() {
   const btn    = document.getElementById('coffeeBtn');
+  if (!btn) return;
+
   const modal  = document.getElementById('coffeeModal');
   const close  = document.getElementById('coffeeClose');
   const copyBtn= document.getElementById('copyUpi');
