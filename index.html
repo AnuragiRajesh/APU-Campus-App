@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Azim Premji University — Student Hub</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 min-h-screen flex flex-col">
+
+  <!-- ═══════════════════════════════
+       NAVBAR
+  ═══════════════════════════════ -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center gap-3">
+      <span class="text-2xl">🎓</span>
+      <span class="font-extrabold text-base md:text-lg tracking-tight leading-tight">Azim Premji University</span>
+      <div class="ml-auto flex items-center gap-2">
+        <button id="darkToggle" aria-label="Toggle dark mode"
+          class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-lg transition-all">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════
+       HERO (compact)
+  ═══════════════════════════════ -->
+  <!-- <div class="hero-gradient py-8 px-4 text-center text-white">
+    <p class="text-sm font-semibold uppercase tracking-widest opacity-70 mb-1">Student Hub</p> -->
+    <!-- <h1 class="text-2xl md:text-3xl font-extrabold">Good to see you! 👋</h1> -->
+    <!-- <p class="text-sm opacity-80 mt-1">Food · JANANI Shuttle · Holidays</p> -->
+  <!-- </div> -->
+
+  <!-- ═══════════════════════════════
+       TAB BAR
+  ═══════════════════════════════ -->
+  <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-16 z-40">
+    <div class="max-w-5xl mx-auto px-2 flex">
+      <button class="main-tab flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2
+                     py-3.5 text-sm font-semibold border-b-2 transition-all
+                     border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              data-tab="shuttle" id="tab-shuttle">
+        <span class="text-xl sm:text-base">🚌</span>
+        <span class="text-xs sm:text-sm">Shuttle</span>
+      </button>
+      <button class="main-tab flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2
+                     py-3.5 text-sm font-semibold border-b-2 transition-all
+                     border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              data-tab="menu" id="tab-menu">
+        <span class="text-xl sm:text-base">🍽️</span>
+        <span class="text-xs sm:text-sm">Oota</span>
+      </button>
+      <button class="main-tab flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2
+                     py-3.5 text-sm font-semibold border-b-2 transition-all
+                     border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              data-tab="cabshare" id="tab-cabshare">
+        <span class="text-xl sm:text-base">🚖</span>
+        <span class="text-xs sm:text-sm">Cab Share</span>
+      </button>
+      <button class="main-tab flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2
+                     py-3.5 text-sm font-semibold border-b-2 transition-all
+                     border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              data-tab="calendar" id="tab-calendar">
+        <span class="text-xl sm:text-base">📅</span>
+        <span class="text-xs sm:text-sm">Holidays</span>
+      </button>    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       TAB PANELS
+  ═══════════════════════════════ -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+
+    <!-- ── PANEL: FOOD MENU ── -->
+    <div id="panel-menu" class="tab-panel">
+
+      <!-- ── Oota Accordion Header ── -->
+      <button id="ootaToggle"
+        class="w-full flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-all shadow-sm">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🍽️</span>
+          <div>
+            <p class="font-extrabold text-base text-gray-900 dark:text-white leading-tight">Oota Menu</p>
+            <p id="ootaSubtitle" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"></p>
+          </div>
+          <span id="liveMealBadge" class="hidden text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold tracking-wide animate-pulse ml-1">🔴 LIVE</span>
+        </div>
+        <span id="ootaChevron" class="text-gray-400 text-lg transition-transform duration-200">▼</span>
+      </button>
+
+      <!-- ── Oota Accordion Body ── -->
+      <div id="ootaBody" class="hidden mt-3">
+
+        <!-- Day selector -->
+        <div id="daySelector" class="flex flex-wrap gap-2 mb-4">
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="0">Mon</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="1">Tue</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="2">Wed</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="3">Thu</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="4">Fri</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="5">Sat</button>
+          <button class="day-btn px-4 py-2 rounded-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold transition-all hover:border-orange-400 hover:text-orange-500" data-day="6">Sun</button>
+        </div>
+
+        <!-- Meal tabs -->
+        <div id="mealTabs" class="flex flex-wrap gap-2 mb-3">
+          <button class="meal-tab px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all" data-meal="breakfast">☀️ Breakfast</button>
+          <button class="meal-tab px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all" data-meal="lunch">🌤️ Lunch</button>
+          <button class="meal-tab px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all" data-meal="snack">🍎 Snack</button>
+          <button class="meal-tab px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all" data-meal="dinner">🌙 Dinner</button>
+        </div>
+
+        <!-- Meal timing -->
+        <div class="flex items-center gap-2 mb-5 flex-wrap">
+          <div id="mealTiming" class="inline-block text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg"></div>
+        </div>
+
+        <!-- Menu cards -->
+        <div id="menuGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+        <!-- ── FOOD COMMENTS (collapsible) ── -->
+        <div id="foodCommentSection" class="mt-8">
+
+          <!-- Accordion toggle header -->
+          <button id="commentToggle"
+            class="w-full flex items-center justify-between bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+            <div class="flex items-center gap-3">
+              <span class="text-base font-bold text-gray-800 dark:text-gray-200">💬 How's the Oota?</span>
+              <span id="commentCount" class="hidden text-xs bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-semibold"></span>
+              <span id="liveCommentBadge" class="hidden text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">● LIVE</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <p id="commentWindowLabel" class="text-xs text-gray-400 dark:text-gray-500 hidden sm:block"></p>
+              <span id="commentChevron" class="text-gray-400 text-sm transition-transform duration-200">▼</span>
+            </div>
+          </button>
+
+          <!-- Accordion body -->
+          <div id="commentBody" class="mt-2 hidden">
+
+            <!-- Post form (shown only during meal window) -->
+            <div id="commentForm" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 mb-3 overflow-hidden">
+              <!-- Rating -->
+              <div class="flex items-center gap-1 mb-3 flex-wrap" id="starRating" role="group" aria-label="Rate the meal">
+                <button class="star-btn text-2xl transition-transform hover:scale-110 leading-none" data-val="1" aria-label="1 star">⭐</button>
+                <button class="star-btn text-2xl transition-transform hover:scale-110 leading-none" data-val="2" aria-label="2 stars">⭐</button>
+                <button class="star-btn text-2xl transition-transform hover:scale-110 leading-none" data-val="3" aria-label="3 stars">⭐</button>
+                <button class="star-btn text-2xl transition-transform hover:scale-110 leading-none" data-val="4" aria-label="4 stars">⭐</button>
+                <button class="star-btn text-2xl transition-transform hover:scale-110 leading-none" data-val="5" aria-label="5 stars">⭐</button>
+                <span id="ratingLabel" class="ml-2 text-xs text-gray-400 dark:text-gray-500">Tap to rate</span>
+              </div>
+              <!-- Name + comment -->
+              <div class="flex flex-col gap-2 mb-2">
+                <input id="commentName" type="text" placeholder="Your name (optional)"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all" maxlength="20" />
+                <div class="flex gap-2">
+                  <input id="commentText" type="text" placeholder="Tell others how it is…"
+                    class="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all" maxlength="120" />
+                  <button id="commentSubmit"
+                    class="flex-shrink-0 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold rounded-lg transition-all">
+                    Post
+                  </button>
+                </div>
+              </div>
+              <p id="commentError" class="text-red-500 text-xs hidden"></p>
+            </div>
+
+            <!-- Closed window notice -->
+            <div id="commentClosed" class="hidden text-sm text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 mb-3 text-center">
+              🔒 Comments open when the meal starts
+            </div>
+
+            <!-- Comments list -->
+            <div id="commentList" class="flex flex-col gap-2.5"></div>
+            <p id="commentEmpty" class="hidden text-center text-gray-400 dark:text-gray-600 text-sm py-6">
+              No comments yet. Be the first to share! 🍽️
+            </p>
+          </div>
+
+        </div>
+
+      </div><!-- end ootaBody -->
+    </div>
+
+    <!-- ── PANEL: SHUTTLE ── -->
+    <div id="panel-shuttle" class="tab-panel hidden">
+
+      <!-- Next bus hero (both directions) -->
+      <div id="shuttleHero"></div>
+
+      <!-- Schedule toggle -->
+      <div class="flex gap-2 mb-4">
+        <button class="schedule-tab px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-500 dark:text-gray-400 transition-all hover:border-blue-400 hover:text-blue-500" data-schedule="weekday">📅 Weekdays</button>
+        <button class="schedule-tab px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-500 dark:text-gray-400 transition-all hover:border-blue-400 hover:text-blue-500" data-schedule="weekend">🏖️ Weekends</button>
+      </div>
+
+      <!-- Note -->
+      <div class="text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500 px-4 py-2.5 rounded-r-lg mb-5">
+        ⚠️ No shuttle on public holidays. JANANI bus service.
+      </div>
+
+      <!-- Table: both directions side by side -->
+      <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-gray-800 text-xs font-bold uppercase tracking-wide text-gray-400">
+              <th class="px-4 py-3 text-left border-r border-gray-100 dark:border-gray-800">
+                🏙️ → 🏫 Station to Campus
+              </th>
+              <th class="px-4 py-3 text-left">
+                🏫 → 🏙️ Campus to Station
+              </th>
+            </tr>
+          </thead>
+          <tbody id="shuttleBody" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PANEL: CAB SHARE ── -->
+    <div id="panel-cabshare" class="tab-panel hidden">
+
+      <!-- Header info -->
+      <div class="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 mb-5 flex gap-3 items-start">
+        <span class="text-xl mt-0.5">💡</span>
+        <p class="text-sm text-green-800 dark:text-green-300 leading-relaxed">
+          Going somewhere? Post your destination and time — other students heading the same way can join and split the fare.
+          <strong>Share your WhatsApp or phone number</strong> so they can reach you.
+        </p>
+      </div>
+
+      <!-- Post form -->
+      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 mb-6">
+        <h3 class="font-bold text-base mb-4">📢 Post a Cab Request</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <!-- Name -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Your Name</label>
+            <input id="cab-name" type="text" placeholder="e.g. Priya S."
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" maxlength="30" />
+          </div>
+          <!-- Destination -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Destination</label>
+            <input id="cab-dest" type="text" placeholder="e.g. Koramangala, MG Road"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" maxlength="60" />
+          </div>
+          <!-- Date -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Date</label>
+            <input id="cab-date" type="date"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" />
+          </div>
+          <!-- Time -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Departure Time</label>
+            <input id="cab-time" type="time"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" />
+          </div>
+          <!-- Seats -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Seats Needed</label>
+            <select id="cab-seats"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all">
+              <option value="1">1 seat</option>
+              <option value="2">2 seats</option>
+              <option value="3">3 seats</option>
+              <option value="4">4 seats</option>
+            </select>
+          </div>
+          <!-- Contact -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">WhatsApp / Phone</label>
+            <input id="cab-contact" type="tel" placeholder="e.g. +91 98765 43210"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" maxlength="20" />
+          </div>
+        </div>
+
+        <!-- Note (optional) -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Note <span class="normal-case font-normal">(optional)</span></label>
+          <input id="cab-note" type="text" placeholder="e.g. Splitting fare equally, leaving from Gate 1"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 dark:focus:ring-green-600 transition-all" maxlength="100" />
+        </div>
+
+        <!-- Error -->
+        <p id="cab-error" class="text-red-500 dark:text-red-400 text-xs mb-3 hidden"></p>
+
+        <button id="cab-post-btn"
+          class="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl text-sm transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md">
+          🚖 Post Cab Request
+        </button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide flex-shrink-0">Filter:</span>
+        <input id="cab-filter" type="text" placeholder="Search by destination..."
+          class="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 transition-all" />
+      </div>
+
+      <!-- Posts list -->
+      <div id="cab-posts" class="flex flex-col gap-3"></div>
+      <p id="cab-empty" class="text-center text-gray-400 dark:text-gray-600 text-sm py-12 hidden">
+        No cab requests yet. Be the first to post! 🚖
+      </p>
+
+    </div>
+
+    <!-- ── PANEL: HOLIDAYS ── -->
+    <div id="panel-calendar" class="tab-panel hidden">
+
+      <!-- Month nav -->
+      <div class="flex items-center justify-between mb-5 bg-white dark:bg-gray-900 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-800">
+        <button id="calPrev" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-violet-100 dark:hover:bg-violet-950 hover:text-violet-600 transition-all font-bold text-lg">&#8592;</button>
+        <span id="calMonthLabel" class="text-base font-bold"></span>
+        <button id="calNext" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-violet-100 dark:hover:bg-violet-950 hover:text-violet-600 transition-all font-bold text-lg">&#8594;</button>
+      </div>
+
+      <!-- Calendar grid -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 mb-6">
+        <div class="grid grid-cols-7 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-800">
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Sun</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Mon</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Tue</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Wed</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Thu</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Fri</span>
+          <span class="py-2.5 text-center text-xs font-bold uppercase tracking-wide text-gray-400">Sat</span>
+        </div>
+        <div id="calGrid" class="grid grid-cols-7"></div>
+      </div>
+
+      <!-- Holiday list -->
+      <p class="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">All Holidays — Jan to Dec 2026</p>
+      <div id="holidayList" class="flex flex-col gap-2.5"></div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 dark:border-gray-800 py-5 text-center text-xs text-gray-400 dark:text-gray-600">
+    Azim Premji University Student Hub &nbsp;·&nbsp; <span id="footerYear"></span>
+  </footer>
+
+  <!-- Feedback floating button (bottom-left) -->
+  <button id="feedbackBtn"
+    class="fixed bottom-6 left-5 z-50 flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm px-4 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
+    aria-label="Report a bug or request a feature">
+    🐛 Feedback
+  </button>
+
+  <!-- ═══════════════════════════════
+       FEEDBACK MODAL
+  ═══════════════════════════════ -->
+  <div id="feedbackModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+    role="dialog" aria-modal="true">
+    <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-100 dark:border-gray-800 coffee-card">
+
+      <button id="feedbackClose"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl transition-colors"
+        aria-label="Close">✕</button>
+
+      <h3 class="text-lg font-extrabold text-gray-900 dark:text-white mb-1">Send Feedback</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">Help make this app better for everyone at APU.</p>
+
+      <!-- Type selector -->
+      <div class="flex gap-2 mb-4">
+        <button class="feedback-type-btn flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
+                       border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400
+                       hover:border-red-400 hover:text-red-500" data-type="bug">
+          🐛 Bug Report
+        </button>
+        <button class="feedback-type-btn flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
+                       border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400
+                       hover:border-violet-400 hover:text-violet-500" data-type="feature">
+          ✨ Feature Request
+        </button>
+      </div>
+
+      <!-- Subject (auto-filled, editable) -->
+      <div class="mb-3">
+        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Subject</label>
+        <input id="feedbackSubject" type="text"
+          class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all" />
+      </div>
+
+      <!-- Message -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Message</label>
+        <textarea id="feedbackMessage" rows="4" placeholder="Describe the bug or feature in detail..."
+          class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all resize-none"></textarea>
+      </div>
+
+      <p id="feedbackError" class="text-red-500 text-xs mb-3 hidden"></p>
+
+      <!-- Send button -->
+      <button id="feedbackSend"
+        class="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl text-sm transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md">
+        📧 Send via Email
+      </button>
+
+      <p class="text-xs text-center text-gray-300 dark:text-gray-600 mt-3">
+        Sends to <span class="font-mono">anuragi.rajesh24_ug@apu.edu.in</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       BUY ME A COFFEE
+  ═══════════════════════════════ -->
+  <button id="coffeeBtn"
+    class="fixed bottom-6 right-5 z-50 flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-bold text-sm px-4 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
+    aria-label="Buy me a coffee">☕ Buy me a coffee</button>
+
+  <div id="coffeeModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+    role="dialog" aria-modal="true">
+    <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm p-7 text-center border border-gray-100 dark:border-gray-800 coffee-card">
+      <button id="coffeeClose" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl transition-colors" aria-label="Close">✕</button>
+      <div class="text-5xl mb-3">☕</div>
+      <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Buy me a coffee!</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
+        Free &amp; built with ❤️ for APU students.<br>If it helped you, a small treat keeps it going!
+      </p>
+      <div class="flex items-center justify-center gap-2 mb-5">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">R</div>
+        <span class="font-semibold text-gray-800 dark:text-gray-200">Rajesh Anuragi</span>
+      </div>
+      <div class="flex justify-center mb-4">
+        <div class="p-2 bg-white rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=rajeshanuragi2003-1@oksbi%26pn=Rajesh%20Anuragi%26cu=INR"
+               alt="UPI QR Code" width="180" height="180" class="rounded-lg block" />
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-5">Scan with GPay, PhonePe, Paytm or any UPI app</p>
+      <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 mb-5">
+        <span class="text-xs text-gray-500 font-medium flex-shrink-0">UPI ID</span>
+        <span id="upiIdText" class="flex-1 text-sm font-mono font-semibold text-gray-800 dark:text-gray-200 text-left truncate">rajeshanuragi2003-1@oksbi</span>
+        <button id="copyUpi" class="flex-shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Copy UPI ID">📋 Copy</button>
+      </div>
+      <div class="flex justify-center gap-2 mb-5">
+        <a href="upi://pay?pa=rajeshanuragi2003-1@oksbi&pn=Rajesh%20Anuragi&am=20&cu=INR&tn=Coffee"  class="px-4 py-2 rounded-full border-2 border-yellow-300 dark:border-yellow-700 text-sm font-bold text-yellow-700 dark:text-yellow-400 hover:bg-yellow-400 hover:text-white hover:border-yellow-400 transition-all">₹20</a>
+        <a href="upi://pay?pa=rajeshanuragi2003-1@oksbi&pn=Rajesh%20Anuragi&am=50&cu=INR&tn=Coffee"  class="px-4 py-2 rounded-full border-2 border-yellow-300 dark:border-yellow-700 text-sm font-bold text-yellow-700 dark:text-yellow-400 hover:bg-yellow-400 hover:text-white hover:border-yellow-400 transition-all">₹50</a>
+        <a href="upi://pay?pa=rajeshanuragi2003-1@oksbi&pn=Rajesh%20Anuragi&am=100&cu=INR&tn=Coffee" class="px-4 py-2 rounded-full border-2 border-yellow-300 dark:border-yellow-700 text-sm font-bold text-yellow-700 dark:text-yellow-400 hover:bg-yellow-400 hover:text-white hover:border-yellow-400 transition-all">₹100</a>
+      </div>
+      <p class="text-xs text-gray-300 dark:text-gray-600">No pressure — the app is always free 🙏</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

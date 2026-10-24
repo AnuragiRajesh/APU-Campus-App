@@ -1,0 +1,265 @@
+/* ══════════════════════════════════════════
+   APU STUDENT HUB — Custom CSS
+   Only things Tailwind can't easily do:
+   hero gradient, calendar grid cells,
+   active states, tooltips, animations
+   ══════════════════════════════════════════ */
+
+/* Scroll padding for sticky nav */
+html { scroll-padding-top: 72px; }
+
+/* ── Hero gradient ── */
+.hero-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ══════════════════════════════════════════
+   FOOD MENU — Active states
+   ══════════════════════════════════════════ */
+.day-btn.active {
+  background-color: #f97316 !important;
+  border-color: #f97316 !important;
+  color: #fff !important;
+}
+.day-btn.today-ring {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+}
+
+.meal-tab.active {
+  background-color: #f97316 !important;
+  color: #fff !important;
+}
+
+/* Menu card top accent + hover lift */
+.menu-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.menu-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: #f97316;
+}
+.menu-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Diet tags */
+.diet-veg    { background: #dcfce7; color: #15803d; }
+.diet-nonveg { background: #fee2e2; color: #b91c1c; }
+.diet-vegan  { background: #d1fae5; color: #065f46; }
+.dark .diet-veg    { background: #14532d; color: #86efac; }
+.dark .diet-nonveg { background: #450a0a; color: #fca5a5; }
+.dark .diet-vegan  { background: #064e3b; color: #6ee7b7; }
+
+/* ══════════════════════════════════════════
+   SHUTTLE — Active states & row highlights
+   ══════════════════════════════════════════ */
+.shuttle-tab.active,
+.schedule-tab.active {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #fff !important;
+}
+
+/* Next upcoming shuttle row */
+tr.next-run td {
+  background-color: #eff6ff;
+  font-weight: 700;
+}
+.dark tr.next-run td { background-color: #0e1a2e; }
+
+tr.next-run td:first-child {
+  color: #3b82f6;
+  font-size: 1rem;
+}
+tr.next-run td:first-child::before { content: '▶ '; font-size: 0.65rem; }
+
+/* Past runs fade */
+tr.past-run td { opacity: 0.4; }
+
+/* Table row hover */
+tbody tr:hover td { background-color: #f9fafb; }
+.dark tbody tr:hover td { background-color: #1f2937; }
+
+/* Status badges */
+.badge-ontime  { background: #dcfce7; color: #15803d; }
+.badge-lastrun { background: #fee2e2; color: #b91c1c; }
+.badge-soon    { background: #fef9c3; color: #854d0e; }
+.dark .badge-ontime  { background: #14532d; color: #86efac; }
+.dark .badge-lastrun { background: #450a0a; color: #fca5a5; }
+.dark .badge-soon    { background: #422006; color: #fde68a; }
+
+/* ══════════════════════════════════════════
+   CALENDAR — Grid cells
+   ══════════════════════════════════════════ */
+.cal-day {
+  min-height: 52px;
+  padding: 6px 4px;
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center;
+  font-size: 0.875rem;
+  position: relative;
+  cursor: default;
+  transition: background 0.15s;
+}
+.dark .cal-day {
+  border-right-color: #1f2937;
+  border-bottom-color: #1f2937;
+}
+/* remove right border on last column */
+.cal-day:nth-child(7n) { border-right: none; }
+
+/* Empty cells */
+.cal-day.empty {
+  background-color: #fafafa;
+  opacity: 0.5;
+}
+.dark .cal-day.empty { background-color: #111827; }
+
+/* Today */
+.cal-day.today { background-color: #f5f3ff; }
+.dark .cal-day.today { background-color: #1a1030; }
+
+.cal-day.today .day-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  background: #8b5cf6;
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 800;
+  margin: 0 auto;
+}
+
+/* Holiday cell */
+.cal-day.is-holiday { background-color: #f5f3ff; cursor: pointer; }
+.dark .cal-day.is-holiday { background-color: #1a1030; }
+.cal-day.is-holiday .day-num { color: #8b5cf6; font-weight: 700; }
+.cal-day.is-holiday:hover { background-color: #8b5cf6; }
+.cal-day.is-holiday:hover .day-num { color: #fff; }
+
+/* Holiday dot indicator */
+.holiday-dot {
+  display: block;
+  width: 5px; height: 5px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  margin: 3px auto 0;
+}
+.cal-day.is-holiday:hover .holiday-dot { background: rgba(255,255,255,0.6); }
+
+/* Weekend tint */
+.cal-day.weekend .day-num { color: #f97316; }
+
+/* Tooltip */
+.holiday-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 20;
+}
+.dark .holiday-tooltip { background: #f9fafb; color: #1f2937; }
+.cal-day.is-holiday:hover .holiday-tooltip { opacity: 1; }
+
+/* ══════════════════════════════════════════
+   UPCOMING HOLIDAYS LIST
+   ══════════════════════════════════════════ */
+.holiday-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: #faf5ff;
+  border-radius: 10px;
+  border-left: 4px solid #8b5cf6;
+  transition: transform 0.15s;
+}
+.dark .holiday-item { background: #1a1030; }
+.holiday-item:hover { transform: translateX(4px); }
+
+.holiday-item-date {
+  min-width: 52px;
+  text-align: center;
+  background: #8b5cf6;
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+  flex-shrink: 0;
+}
+.holiday-item.past { opacity: 0.45; border-left-color: #9ca3af; }
+.holiday-item.past .holiday-item-date { background: #9ca3af; }
+
+/* Nav link active */
+.nav-link.active {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+.dark .nav-link.active {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+/* ── Main tab bar active state ── */
+.main-tab.tab-active {
+  border-bottom-color: #8b5cf6 !important;
+  color: #8b5cf6 !important;
+  font-weight: 700;
+}
+/* Per-section accent colours */
+#tab-menu.tab-active      { border-bottom-color: #f97316 !important; color: #f97316 !important; }
+#tab-shuttle.tab-active   { border-bottom-color: #3b82f6 !important; color: #3b82f6 !important; }
+#tab-cabshare.tab-active  { border-bottom-color: #22c55e !important; color: #22c55e !important; }
+#tab-calendar.tab-active  { border-bottom-color: #8b5cf6 !important; color: #8b5cf6 !important; }
+
+/* ── Shuttle table two-column divider ── */
+.shuttle-col-divider td:first-child {
+  border-right: 1px solid #f3f4f6;
+}
+.dark .shuttle-col-divider td:first-child {
+  border-right-color: #1f2937;
+}
+
+/* ══════════════════════════════════════════
+   BUY ME A COFFEE
+   ══════════════════════════════════════════ */
+@keyframes coffeeIn {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.coffee-card { animation: coffeeIn 0.25s ease forwards; }
+
+/* ══════════════════════════════════════════
+   FADE-IN ANIMATION
+   ══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.3s ease forwards; }
+
+/* ══════════════════════════════════════════
+   MOBILE TWEAKS
+   ══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .cal-day { min-height: 36px; font-size: 0.75rem; }
+}
