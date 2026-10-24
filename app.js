@@ -5,34 +5,21 @@
 
 'use strict';
 
-const JSONBIN_API_URL = 'https://api.jsonbin.io/v3/b';
-
-function getJsonBinConfig() {
-  const config = window.JSONBIN_CONFIG;
-  if (!config?.masterKey || !config.foodCommentsBinId || !config.cabShareBinId) {
-    throw new Error('JSONBin is not configured. Set the master key and bin IDs in config.js.');
-  }
-  return config;
-}
+const PROXY_API_URL = '/api/jsonbin';
 
 async function readJsonBin(binId, fallback) {
-  const { masterKey } = getJsonBinConfig();
-  const response = await fetchJsonBin(`${JSONBIN_API_URL}/${encodeURIComponent(binId)}/latest`, {
-    headers: { 'X-Master-Key': masterKey },
-    cache: 'no-store',
-  }, 'read');
+  // Pass the target Bin ID as a clean URL query parameter
+  const url = `${PROXY_API_URL}?binId=${encodeURIComponent(binId)}`;
+  const response = await fetchJsonBin(url, { cache: 'no-store' }, 'read');
   const payload = await response.json();
   return payload.record ?? fallback;
 }
 
 async function writeJsonBin(binId, record) {
-  const { masterKey } = getJsonBinConfig();
-  const response = await fetchJsonBin(`${JSONBIN_API_URL}/${encodeURIComponent(binId)}`, {
+  const url = `${PROXY_API_URL}?binId=${encodeURIComponent(binId)}`;
+  const response = await fetchJsonBin(url, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': masterKey,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(record),
   }, 'write');
   return response.json();
@@ -45,7 +32,7 @@ async function fetchJsonBin(url, options, operation) {
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Could not reach JSONBin. Run this app from http://localhost (not file://) and check network/CORS access. ${detail}`
+      `Could not reach Vercel API proxy. ${detail}`
     );
   }
 
@@ -54,9 +41,9 @@ async function fetchJsonBin(url, options, operation) {
     let detail = body;
     try {
       const parsed = JSON.parse(body);
-      detail = parsed.message || body;
+      detail = parsed.error || parsed.message || body;
     } catch {
-      // Keep the raw response text when JSONBin does not return JSON.
+      // Fallback to raw string text
     }
     throw new Error(`JSONBin ${operation} failed (${response.status})${detail ? `: ${detail}` : '.'}`);
   }
