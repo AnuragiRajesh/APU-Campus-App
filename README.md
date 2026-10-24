@@ -38,13 +38,14 @@ A no-login, mobile-first web app built for **Azim Premji University** students. 
 - Collapsible section below the menu
 - Students can post a star rating + comment during the meal window
 - **Auto-deletes 2 hours after the meal ends** — no stale reviews
-- Posts stored in `localStorage`, no backend needed
+- Comments shared between users via JSONBin
 
 ### 🚖 Cab Share
 - Post a cab request with destination, date, time, seats needed, and WhatsApp number
 - **WhatsApp deep link** pre-fills a message so anyone can contact instantly
 - Posts **auto-expire at departure time**
 - Search/filter by destination
+- Posts shared between users via JSONBin
 
 ### 📅 Holiday Calendar
 - Official APU holiday list for Jan–Dec 2026
@@ -69,7 +70,7 @@ A no-login, mobile-first web app built for **Azim Premji University** students. 
 |---|---|
 | Styling | Tailwind CSS (CDN) |
 | Logic | Vanilla JavaScript |
-| Storage | `localStorage` (no backend) |
+| Storage | JSONBin for comments and cab-share posts; `localStorage` for theme preference |
 | Fonts | Inter via Google Fonts |
 | Hosting | Any static host — GitHub Pages, Netlify, university server |
 
@@ -82,6 +83,7 @@ university-app/
 ├── index.html        — Single page, all four tabs
 ├── style.css         — Custom CSS (only things Tailwind can't do)
 ├── app.js            — All data and interactive logic
+├── config.example.js  — JSONBin configuration template
 └── screenshoots/     — App screenshots
 ```
 
@@ -89,16 +91,29 @@ university-app/
 
 ## Running Locally
 
-No build step needed. Just open `index.html` in any browser:
+No build step needed. Start a local HTTP server (do not open `index.html` as a
+`file://` URL, which can prevent browser API requests):
+
+The JSONBin credentials are read from `config.js`, which is intentionally
+ignored by Git. It is already configured in this local checkout. For another
+checkout, copy `config.example.js` to `config.js` and enter the JSONBin master
+key there.
+
+> **Security:** A browser app cannot keep a JSONBin master key secret. Do not
+> publish `config.js` or expose this master key to users; use a small server-side
+> proxy with a restricted credential for a public deployment. Rotate the key if
+> it has been exposed.
 
 ```bash
-# Option 1 — direct open
-xdg-open index.html
-
-# Option 2 — local server
+# Local server
 python3 -m http.server 8080
 # then visit http://localhost:8080
 ```
+
+For a deployed static site, `config.js` must be provided by the hosting setup;
+it is intentionally not committed because it contains a credential. A static
+site cannot keep a master key private, so use a server-side proxy for public
+deployments.
 
 ---
 

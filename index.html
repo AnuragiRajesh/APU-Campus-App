@@ -129,6 +129,7 @@
           <span id="liveCommentBadge" class="hidden text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">● LIVE</span>
           <p id="commentWindowLabel" class="text-xs text-gray-400 dark:text-gray-500 ml-auto"></p>
         </div>
+        <p id="commentSyncStatus" class="hidden text-red-500 text-xs mb-3" role="status"></p>
 
         <!-- Post form (shown only during meal window) -->
         <div id="commentForm" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 mb-3 overflow-hidden">
@@ -288,6 +289,7 @@
 
       <!-- Posts list -->
       <div id="cab-posts" class="flex flex-col gap-3"></div>
+      <p id="cab-sync-status" class="hidden text-center text-red-500 text-sm py-4" role="status"></p>
       <p id="cab-empty" class="text-center text-gray-400 dark:text-gray-600 text-sm py-12 hidden">
         No cab requests yet. Be the first to post! 🚖
       </p>
@@ -436,6 +438,7 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

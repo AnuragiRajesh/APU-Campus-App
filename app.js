@@ -5,6 +5,79 @@
 
 'use strict';
 
+const JSONBIN_API_URL = 'https://api.jsonbin.io/v3/b';
+
+function getJsonBinConfig() {
+  const config = window.JSONBIN_CONFIG;
+  if (!config?.masterKey || !config.foodCommentsBinId || !config.cabShareBinId) {
+    throw new Error('JSONBin is not configured. Set the master key and bin IDs in config.js.');
+  }
+  return config;
+}
+
+async function readJsonBin(binId, fallback) {
+  const { masterKey } = getJsonBinConfig();
+  const response = await fetchJsonBin(`${JSONBIN_API_URL}/${encodeURIComponent(binId)}/latest`, {
+    headers: { 'X-Master-Key': masterKey },
+    cache: 'no-store',
+  }, 'read');
+  const payload = await response.json();
+  return payload.record ?? fallback;
+}
+
+async function writeJsonBin(binId, record) {
+  const { masterKey } = getJsonBinConfig();
+  const response = await fetchJsonBin(`${JSONBIN_API_URL}/${encodeURIComponent(binId)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': masterKey,
+    },
+    body: JSON.stringify(record),
+  }, 'write');
+  return response.json();
+}
+
+async function fetchJsonBin(url, options, operation) {
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Could not reach JSONBin. Run this app from http://localhost (not file://) and check network/CORS access. ${detail}`
+    );
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    let detail = body;
+    try {
+      const parsed = JSON.parse(body);
+      detail = parsed.message || body;
+    } catch {
+      // Keep the raw response text when JSONBin does not return JSON.
+    }
+    throw new Error(`JSONBin ${operation} failed (${response.status})${detail ? `: ${detail}` : '.'}`);
+  }
+  return response;
+}
+
+async function updateJsonBin(binId, fallback, update) {
+  const record = await readJsonBin(binId, fallback);
+  const changed = update(record);
+  if (changed) await writeJsonBin(binId, record);
+  return record;
+}
+
+function setSyncStatus(elementId, message, isError = false) {
+  const element = document.getElementById(elementId);
+  element.textContent = message;
+  element.classList.toggle('hidden', !message);
+  element.classList.toggle('text-red-500', isError);
+  element.classList.toggle('text-gray-400', !isError);
+}
+
 // ─────────────────────────────────────────
 // 1. DATA
 // ─────────────────────────────────────────
@@ -859,30 +932,66 @@ function commentKey(dateStr, meal) {
   return `apu-comments-${dateStr}-${meal}`;
 }
 
-function getComments(dateStr, meal) {
-  try { return JSON.parse(localStorage.getItem(commentKey(dateStr, meal))) || []; }
-  catch { return []; }
+function getComments(record, dateStr, meal) {
+  if (!record || (!Array.isArray(record) && typeof record !== 'object')) {
+    throw new Error('The food-comments bin does not contain a valid record.');
+  }
+  if (Array.isArray(record)) {
+    return record.filter(comment => comment.date === dateStr && comment.meal === meal);
+  }
+  return Array.isArray(record[commentKey(dateStr, meal)])
+    ? record[commentKey(dateStr, meal)]
+    : [];
 }
-function saveComments(dateStr, meal, list) {
-  localStorage.setItem(commentKey(dateStr, meal), JSON.stringify(list));
+
+function updateCommentsInRecord(record, dateStr, meal, transform) {
+  const key = commentKey(dateStr, meal);
+  if (Array.isArray(record)) {
+    const current = getComments(record, dateStr, meal);
+    const result = transform(current);
+    if (!result.changed) return false;
+    const retained = record.filter(comment => comment.date !== dateStr || comment.meal !== meal);
+    record.splice(0, record.length, ...retained, ...result.comments);
+    return true;
+  }
+
+  const current = getComments(record, dateStr, meal);
+  const result = transform(current);
+  if (!result.changed) return false;
+  if (result.comments.length) record[key] = result.comments;
+  else delete record[key];
+  return true;
+}
+
+async function loadComments(dateStr, meal) {
+  const { foodCommentsBinId } = getJsonBinConfig();
+  let record = await readJsonBin(foodCommentsBinId, {});
+  let comments = getComments(record, dateStr, meal);
+
+  if (isCommentWindowExpired(meal, dateStr) && comments.length) {
+    record = await updateJsonBin(foodCommentsBinId, {}, current =>
+      updateCommentsInRecord(current, dateStr, meal, () => ({ changed: true, comments: [] }))
+    );
+    comments = getComments(record, dateStr, meal);
+  }
+  return comments;
 }
 
 // Is the comment window open right now for this meal?
-function isCommentWindowOpen(meal) {
+function isCommentWindowOpen(meal, dateStr) {
   const w = MEAL_WINDOWS[meal];
   if (!w) return false;
-  const now = today.getHours() * 60 + today.getMinutes();
-  const start = w.start[0] * 60 + w.start[1];
-  return now >= start; // open from meal start (no upper limit for posting)
+  const start = new Date(`${dateStr}T${String(w.start[0]).padStart(2, '0')}:${String(w.start[1]).padStart(2, '0')}:00`);
+  return Date.now() >= start.getTime(); // open from meal start; close after the expiry window
 }
 
 // Should comments be pruned? Yes if now > end + 2h
-function isCommentWindowExpired(meal) {
+function isCommentWindowExpired(meal, dateStr) {
   const w = MEAL_WINDOWS[meal];
   if (!w) return false;
-  const now   = today.getHours() * 60 + today.getMinutes();
-  const close = w.end[0] * 60 + w.end[1] + 120; // end + 2 hours
-  return now > close;
+  const close = new Date(`${dateStr}T${String(w.end[0]).padStart(2, '0')}:${String(w.end[1]).padStart(2, '0')}:00`);
+  close.setMinutes(close.getMinutes() + 120);
+  return Date.now() > close.getTime();
 }
 
 // Human-readable window description
@@ -901,16 +1010,12 @@ function windowDesc(meal) {
 const RATING_LABELS = ['', '😣 Terrible', '😕 Not great', '😐 It\'s okay', '😊 Pretty good', '🤩 Excellent!'];
 
 let selectedRating = 0;
+let commentRenderSequence = 0;
 
-function renderComments(dateStr, meal) {
-  // Prune expired meals first
-  if (isCommentWindowExpired(meal)) {
-    localStorage.removeItem(commentKey(dateStr, meal));
-  }
-
-  const comments    = getComments(dateStr, meal);
-  const isOpen      = isCommentWindowOpen(meal);
-  const isExpired   = isCommentWindowExpired(meal);
+async function renderComments(dateStr, meal) {
+  const renderSequence = ++commentRenderSequence;
+  const isOpen      = isCommentWindowOpen(meal, dateStr);
+  const isExpired   = isCommentWindowExpired(meal, dateStr);
 
   const formEl      = document.getElementById('commentForm');
   const closedEl    = document.getElementById('commentClosed');
@@ -918,6 +1023,19 @@ function renderComments(dateStr, meal) {
   const emptyEl     = document.getElementById('commentEmpty');
   const windowLabel = document.getElementById('commentWindowLabel');
   const countEl     = document.getElementById('commentCount');
+
+  setSyncStatus('commentSyncStatus', 'Loading comments…');
+  let comments;
+  try {
+    comments = await loadComments(dateStr, meal);
+  } catch (error) {
+    if (renderSequence === commentRenderSequence) {
+      setSyncStatus('commentSyncStatus', error.message, true);
+    }
+    return;
+  }
+  if (renderSequence !== commentRenderSequence) return;
+  setSyncStatus('commentSyncStatus', '');
 
   // Window label
   windowLabel.textContent = windowDesc(meal);
@@ -1013,10 +1131,11 @@ function initComments() {
   }
 
   // Submit
-  document.getElementById('commentSubmit').addEventListener('click', () => {
+  document.getElementById('commentSubmit').addEventListener('click', async () => {
     const text    = document.getElementById('commentText').value.trim();
     const name    = document.getElementById('commentName').value.trim();
     const errEl   = document.getElementById('commentError');
+    const submitBtn = document.getElementById('commentSubmit');
     const dateStr = dateStrForDayIndex(state.menu.day);
     const meal    = state.menu.meal;
 
@@ -1027,15 +1146,34 @@ function initComments() {
     }
     errEl.classList.add('hidden');
 
-    const list = getComments(dateStr, meal);
-    list.push({
+    const comment = {
       id:       `${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
       name:     name || 'Anonymous',
       text,
       rating:   selectedRating,
       postedAt: Date.now(),
-    });
-    saveComments(dateStr, meal, list);
+      date:     dateStr,
+      meal,
+    };
+    submitBtn.disabled = true;
+    setSyncStatus('commentSyncStatus', 'Posting comment…');
+    try {
+      const { foodCommentsBinId } = getJsonBinConfig();
+      await updateJsonBin(foodCommentsBinId, {}, record =>
+        updateCommentsInRecord(record, dateStr, meal, comments => ({
+          changed: true,
+          comments: [...comments, comment],
+        }))
+      );
+    } catch (error) {
+      errEl.textContent = error.message;
+      errEl.classList.remove('hidden');
+      setSyncStatus('commentSyncStatus', '');
+      submitBtn.disabled = false;
+      return;
+    }
+    submitBtn.disabled = false;
+    setSyncStatus('commentSyncStatus', '');
 
     // Clear inputs
     document.getElementById('commentText').value = '';
@@ -1046,7 +1184,7 @@ function initComments() {
     document.getElementById('ratingLabel').classList.remove('text-orange-500', 'font-semibold');
     document.getElementById('ratingLabel').classList.add('text-gray-400', 'dark:text-gray-500');
 
-    renderComments(dateStr, meal);
+    await renderComments(dateStr, meal);
   });
 
   // Allow Enter key to submit
@@ -1400,14 +1538,28 @@ function setFooterYear() {
 // ─────────────────────────────────────────
 // 9. CAB SHARE
 // ─────────────────────────────────────────
-const CAB_STORAGE_KEY = 'apu-cab-posts';
+let cabPostsCache = [];
 
-function getCabPosts() {
-  try { return JSON.parse(localStorage.getItem(CAB_STORAGE_KEY)) || []; }
-  catch { return []; }
+function validateCabPosts(record) {
+  if (!Array.isArray(record)) {
+    throw new Error('The cab-share bin does not contain a valid list.');
+  }
+  return record;
 }
-function saveCabPosts(posts) {
-  localStorage.setItem(CAB_STORAGE_KEY, JSON.stringify(posts));
+
+async function loadCabPosts() {
+  const { cabShareBinId } = getJsonBinConfig();
+  let posts = validateCabPosts(await readJsonBin(cabShareBinId, []));
+  if (posts.some(isPostExpired)) {
+    posts = validateCabPosts(await updateJsonBin(cabShareBinId, [], record => {
+      validateCabPosts(record);
+      const activePosts = record.filter(post => !isPostExpired(post));
+      if (activePosts.length === record.length) return false;
+      record.splice(0, record.length, ...activePosts);
+      return true;
+    }));
+  }
+  return posts;
 }
 
 function fmt12FromTime(timeStr) {
@@ -1433,13 +1585,10 @@ function isPostExpired(post) {
   return Date.now() > dept.getTime();
 }
 
-function renderCabPosts(filterText = '') {
+function renderCabPosts(filterText = '', savedPosts = cabPostsCache) {
   const container = document.getElementById('cab-posts');
   const empty     = document.getElementById('cab-empty');
-  let posts       = getCabPosts().filter(p => !isPostExpired(p));
-
-  // Prune expired from storage
-  saveCabPosts(getCabPosts().filter(p => !isPostExpired(p)));
+  let posts       = savedPosts.filter(p => !isPostExpired(p));
 
   // Apply filter
   const q = filterText.trim().toLowerCase();
@@ -1457,6 +1606,7 @@ function renderCabPosts(filterText = '') {
     empty.classList.remove('hidden');
     return;
   }
+
   empty.classList.add('hidden');
 
   container.innerHTML = posts.map(p => {
@@ -1529,6 +1679,17 @@ function renderCabPosts(filterText = '') {
 
 }
 
+async function refreshCabPosts() {
+  setSyncStatus('cab-sync-status', 'Loading cab requests…');
+  try {
+    cabPostsCache = await loadCabPosts();
+    setSyncStatus('cab-sync-status', '');
+    renderCabPosts(document.getElementById('cab-filter').value);
+  } catch (error) {
+    setSyncStatus('cab-sync-status', error.message, true);
+  }
+}
+
 function timeUntilDept(post) {
   const dept    = new Date(`${post.date}T${post.time}:00`);
   const diffMs  = dept.getTime() - Date.now();
@@ -1566,7 +1727,8 @@ function initCabShare() {
   dateInput.min   = new Date().toISOString().split('T')[0];
 
   // Post button
-  document.getElementById('cab-post-btn').addEventListener('click', () => {
+  document.getElementById('cab-post-btn').addEventListener('click', async () => {
+    const postButton = document.getElementById('cab-post-btn');
     const name    = document.getElementById('cab-name').value.trim();
     const dest    = document.getElementById('cab-dest').value.trim();
     const date    = document.getElementById('cab-date').value;
@@ -1592,9 +1754,23 @@ function initCabShare() {
       postedAt: Date.now(),
     };
 
-    const posts = getCabPosts();
-    posts.unshift(post);
-    saveCabPosts(posts);
+    postButton.disabled = true;
+    setSyncStatus('cab-sync-status', 'Posting cab request…');
+    try {
+      const { cabShareBinId } = getJsonBinConfig();
+      cabPostsCache = validateCabPosts(await updateJsonBin(cabShareBinId, [], record => {
+        validateCabPosts(record);
+        record.unshift(post);
+        return true;
+      }));
+    } catch (error) {
+      showCabError(errEl, error.message);
+      setSyncStatus('cab-sync-status', '');
+      postButton.disabled = false;
+      return;
+    }
+    postButton.disabled = false;
+    setSyncStatus('cab-sync-status', '');
 
     // Clear form
     document.getElementById('cab-name').value    = '';
@@ -1616,12 +1792,10 @@ function initCabShare() {
     renderCabPosts(e.target.value);
   });
 
-  renderCabPosts();
+  refreshCabPosts();
 
-  // Auto-refresh every 60s — prunes expired posts and updates countdowns
-  setInterval(() => {
-    renderCabPosts(document.getElementById('cab-filter').value);
-  }, 60000);
+  // Refresh posts every 60s so updates from other users appear and expired posts are removed.
+  setInterval(refreshCabPosts, 60000);
 }
 
 function showCabError(el, msg) {
