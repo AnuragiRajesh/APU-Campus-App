@@ -83,7 +83,7 @@ university-app/
 ├── index.html        — Single page, all four tabs
 ├── style.css         — Custom CSS (only things Tailwind can't do)
 ├── app.js            — All data and interactive logic
-├── config.example.js  — JSONBin configuration template
+├── api/jsonbin.js     — Server-side JSONBin proxy for Vercel
 └── screenshoots/     — App screenshots
 ```
 
@@ -94,26 +94,20 @@ university-app/
 No build step needed. Start a local HTTP server (do not open `index.html` as a
 `file://` URL, which can prevent browser API requests):
 
-The JSONBin credentials are read from `config.js`, which is intentionally
-ignored by Git. It is already configured in this local checkout. For another
-checkout, copy `config.example.js` to `config.js` and enter the JSONBin master
-key there.
-
-> **Security:** A browser app cannot keep a JSONBin master key secret. Do not
-> publish `config.js` or expose this master key to users; use a small server-side
-> proxy with a restricted credential for a public deployment. Rotate the key if
-> it has been exposed.
+The JSONBin master key is used only by `api/jsonbin.js`; the browser calls this
+same-origin API route and never receives the key.
 
 ```bash
-# Local server
-python3 -m http.server 8080
-# then visit http://localhost:8080
+# Install Vercel CLI if needed, then run the project locally
+vercel dev
+# then visit the URL shown by Vercel CLI
 ```
 
-For a deployed static site, `config.js` must be provided by the hosting setup;
-it is intentionally not committed because it contains a credential. A static
-site cannot keep a master key private, so use a server-side proxy for public
-deployments.
+In Vercel, add `JSONBIN_MASTER_KEY` under **Project → Settings → Environment
+Variables** for each required environment, then redeploy. Do not add the key to
+`app.js`, `index.html`, or any other browser-delivered file. If the key was
+previously exposed, rotate it in JSONBin and update the Vercel environment
+variable.
 
 ---
 

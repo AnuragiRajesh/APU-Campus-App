@@ -6,6 +6,10 @@
 'use strict';
 
 const PROXY_API_URL = '/api/jsonbin';
+const JSONBIN_IDS = {
+  foodComments: '6adcec7fffd5d1605388b879',
+  cabShare: '6adcec93ac6210605a4f08ac',
+};
 
 async function readJsonBin(binId, fallback) {
   // Pass the target Bin ID as a clean URL query parameter
@@ -951,12 +955,11 @@ function updateCommentsInRecord(record, dateStr, meal, transform) {
 }
 
 async function loadComments(dateStr, meal) {
-  const { foodCommentsBinId } = getJsonBinConfig();
-  let record = await readJsonBin(foodCommentsBinId, {});
+  let record = await readJsonBin(JSONBIN_IDS.foodComments, {});
   let comments = getComments(record, dateStr, meal);
 
   if (isCommentWindowExpired(meal, dateStr) && comments.length) {
-    record = await updateJsonBin(foodCommentsBinId, {}, current =>
+    record = await updateJsonBin(JSONBIN_IDS.foodComments, {}, current =>
       updateCommentsInRecord(current, dateStr, meal, () => ({ changed: true, comments: [] }))
     );
     comments = getComments(record, dateStr, meal);
@@ -1145,8 +1148,7 @@ function initComments() {
     submitBtn.disabled = true;
     setSyncStatus('commentSyncStatus', 'Posting comment…');
     try {
-      const { foodCommentsBinId } = getJsonBinConfig();
-      await updateJsonBin(foodCommentsBinId, {}, record =>
+      await updateJsonBin(JSONBIN_IDS.foodComments, {}, record =>
         updateCommentsInRecord(record, dateStr, meal, comments => ({
           changed: true,
           comments: [...comments, comment],
@@ -1535,10 +1537,9 @@ function validateCabPosts(record) {
 }
 
 async function loadCabPosts() {
-  const { cabShareBinId } = getJsonBinConfig();
-  let posts = validateCabPosts(await readJsonBin(cabShareBinId, []));
+  let posts = validateCabPosts(await readJsonBin(JSONBIN_IDS.cabShare, []));
   if (posts.some(isPostExpired)) {
-    posts = validateCabPosts(await updateJsonBin(cabShareBinId, [], record => {
+    posts = validateCabPosts(await updateJsonBin(JSONBIN_IDS.cabShare, [], record => {
       validateCabPosts(record);
       const activePosts = record.filter(post => !isPostExpired(post));
       if (activePosts.length === record.length) return false;
@@ -1744,8 +1745,7 @@ function initCabShare() {
     postButton.disabled = true;
     setSyncStatus('cab-sync-status', 'Posting cab request…');
     try {
-      const { cabShareBinId } = getJsonBinConfig();
-      cabPostsCache = validateCabPosts(await updateJsonBin(cabShareBinId, [], record => {
+      cabPostsCache = validateCabPosts(await updateJsonBin(JSONBIN_IDS.cabShare, [], record => {
         validateCabPosts(record);
         record.unshift(post);
         return true;
