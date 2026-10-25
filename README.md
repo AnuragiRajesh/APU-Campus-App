@@ -40,7 +40,7 @@ A no-login, mobile-first web app built for **Azim Premji University** students. 
 - **Auto-deletes 2 hours after the meal ends** — no stale reviews
 - Comments shared between users via JSONBin
 - Use **Refresh comments** to load updates from other users on demand
-- Shows the latest 12 comments first; load older comments in batches of 12
+- Shows up to 8 comments at a time; page through older or newer comments
 
 ### 🚖 Cab Share
 - Post a cab request with destination, date, time, seats needed, and WhatsApp number

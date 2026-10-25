@@ -167,10 +167,16 @@
 
         <!-- Comments list -->
         <div id="commentList" class="flex flex-col gap-2.5"></div>
-        <button id="loadPreviousComments" type="button"
-          class="hidden mt-3 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-950 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-lg transition-all">
-          Load previous comments
-        </button>
+        <div class="flex gap-2 mt-3">
+          <button id="loadPreviousComments" type="button"
+            class="hidden px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-950 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-lg transition-all">
+            Load previous comments
+          </button>
+          <button id="loadNewerComments" type="button"
+            class="hidden px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-950 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-lg transition-all">
+            Newer comments
+          </button>
+        </div>
         <p id="commentEmpty" class="hidden text-center text-gray-400 dark:text-gray-600 text-sm py-6">
           No comments yet. Be the first to share! 🍽️
         </p>

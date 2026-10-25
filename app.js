@@ -1023,7 +1023,8 @@ const RATING_LABELS = ['', '😣 Terrible', '😕 Not great', '😐 It\'s okay',
 
 let selectedRating = 0;
 let commentRenderSequence = 0;
-let visibleCommentCount = 12;
+const COMMENTS_PER_PAGE = 8;
+let commentPageFromNewest = 0;
 let loadedCommentsKey = '';
 let loadedComments = [];
 
@@ -1031,16 +1032,22 @@ function renderCommentList(comments, isOpen, isExpired) {
   const listEl = document.getElementById('commentList');
   const emptyEl = document.getElementById('commentEmpty');
   const loadPreviousButton = document.getElementById('loadPreviousComments');
+  const loadNewerButton = document.getElementById('loadNewerComments');
 
   if (comments.length === 0) {
     listEl.innerHTML = '';
     emptyEl.classList.toggle('hidden', !isOpen || isExpired);
     loadPreviousButton.classList.add('hidden');
+    loadNewerButton.classList.add('hidden');
     return;
   }
   emptyEl.classList.add('hidden');
 
-  const visibleComments = comments.slice(-visibleCommentCount);
+  const lastPage = Math.ceil(comments.length / COMMENTS_PER_PAGE) - 1;
+  commentPageFromNewest = Math.min(commentPageFromNewest, lastPage);
+  const pageEnd = comments.length - commentPageFromNewest * COMMENTS_PER_PAGE;
+  const pageStart = Math.max(0, pageEnd - COMMENTS_PER_PAGE);
+  const visibleComments = comments.slice(pageStart, pageEnd);
   listEl.innerHTML = visibleComments.map(c => {
     const stars = c.rating ? '⭐'.repeat(c.rating) : '';
     const name  = c.name || 'Anonymous';
@@ -1062,7 +1069,8 @@ function renderCommentList(comments, isOpen, isExpired) {
       </div>
     `;
   }).join('');
-  loadPreviousButton.classList.toggle('hidden', visibleComments.length >= comments.length);
+  loadPreviousButton.classList.toggle('hidden', pageStart === 0);
+  loadNewerButton.classList.toggle('hidden', commentPageFromNewest === 0);
 }
 
 async function renderComments(dateStr, meal, showLoading = true) {
@@ -1090,7 +1098,7 @@ async function renderComments(dateStr, meal, showLoading = true) {
   const commentsKey = commentKey(dateStr, meal);
   if (commentsKey !== loadedCommentsKey) {
     loadedCommentsKey = commentsKey;
-    visibleCommentCount = 12;
+    commentPageFromNewest = 0;
   }
   loadedComments = comments;
 
@@ -1137,7 +1145,16 @@ function timeAgoComment(ts) {
 
 function initComments() {
   document.getElementById('loadPreviousComments').addEventListener('click', () => {
-    visibleCommentCount += 12;
+    commentPageFromNewest += 1;
+    const dateStr = dateStrForDayIndex(state.menu.day);
+    renderCommentList(
+      loadedComments,
+      isCommentWindowOpen(state.menu.meal, dateStr),
+      isCommentWindowExpired(state.menu.meal, dateStr)
+    );
+  });
+  document.getElementById('loadNewerComments').addEventListener('click', () => {
+    commentPageFromNewest -= 1;
     const dateStr = dateStrForDayIndex(state.menu.day);
     renderCommentList(
       loadedComments,
@@ -1213,6 +1230,7 @@ function initComments() {
     setSyncStatus('commentSyncStatus', '');
 
     // Clear inputs
+    commentPageFromNewest = 0;
     document.getElementById('commentText').value = '';
     document.getElementById('commentName').value = '';
     selectedRating = 0;
