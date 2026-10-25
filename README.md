@@ -39,7 +39,7 @@ A no-login, mobile-first web app built for **Azim Premji University** students. 
 - Students can post a star rating + comment during the meal window
 - **Auto-deletes 2 hours after the meal ends** — no stale reviews
 - Comments shared between users via JSONBin
-- New comments appear automatically within about 10 seconds while the page is open
+- New comments appear automatically within about a minute while the Oota tab is open
 
 ### 🚖 Cab Share
 - Post a cab request with destination, date, time, seats needed, and WhatsApp number
@@ -47,7 +47,7 @@ A no-login, mobile-first web app built for **Azim Premji University** students. 
 - Posts **auto-expire at departure time**
 - Search/filter by destination
 - Posts shared between users via JSONBin
-- New requests appear automatically within about 10 seconds while the page is open
+- New requests appear automatically within about a minute while the Cab Share tab is open
 
 ### 📅 Holiday Calendar
 - Official APU holiday list for Jan–Dec 2026

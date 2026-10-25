@@ -843,6 +843,7 @@ let state = {
 };
 
 let userSelectedMainTab = false;
+let currentMainTab = 'shuttle';
 
 
 // ─────────────────────────────────────────
@@ -1203,7 +1204,7 @@ function initComments() {
 
   let refreshInProgress = false;
   const refreshSelectedComments = async () => {
-    if (document.visibilityState !== 'visible' || refreshInProgress) return;
+    if (currentMainTab !== 'menu' || document.visibilityState !== 'visible' || refreshInProgress) return;
     refreshInProgress = true;
     try {
       await renderComments(dateStrForDayIndex(state.menu.day), state.menu.meal, false);
@@ -1212,12 +1213,14 @@ function initComments() {
     }
   };
 
-  // Poll while the page is visible; JSONBin does not provide push updates.
-  setInterval(() => {
-    refreshSelectedComments();
-  }, 10000);
+  // Poll the active section every minute; JSONBin does not provide push updates.
+  setInterval(refreshSelectedComments, 60000);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') refreshSelectedComments();
+  });
+
+  document.addEventListener('apu:main-tab-change', event => {
+    if (event.detail === 'menu') refreshSelectedComments();
   });
 }
 
@@ -1469,6 +1472,7 @@ function initMainTabs() {
 }
 
 function switchMainTab(tabId) {
+  currentMainTab = tabId;
   document.querySelectorAll('.main-tab').forEach(tab => {
     const isActive = tab.dataset.tab === tabId;
     tab.classList.toggle('tab-active', isActive);
@@ -1481,6 +1485,8 @@ function switchMainTab(tabId) {
     panel.classList.toggle('hidden', !isActive);
     if (isActive) panel.classList.add('fade-up');
   });
+
+  document.dispatchEvent(new CustomEvent('apu:main-tab-change', { detail: tabId }));
 }
 
 
@@ -1835,10 +1841,15 @@ function initCabShare() {
 
   refreshCabPosts();
 
-  // Poll while visible; JSONBin does not provide push updates.
-  setInterval(refreshCabPosts, 10000);
+  // Poll the active section every minute; JSONBin does not provide push updates.
+  setInterval(() => {
+    if (currentMainTab === 'cabshare') refreshCabPosts();
+  }, 60000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') refreshCabPosts();
+    if (document.visibilityState === 'visible' && currentMainTab === 'cabshare') refreshCabPosts();
+  });
+  document.addEventListener('apu:main-tab-change', event => {
+    if (event.detail === 'cabshare') refreshCabPosts();
   });
 }
 
