@@ -130,6 +130,11 @@
           <span id="liveCommentBadge" class="hidden text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">● LIVE</span>
           <p id="commentWindowLabel" class="text-xs text-gray-400 dark:text-gray-500 ml-auto"></p>
         </div>
+        <button id="comment-refresh-btn" type="button"
+          class="mb-3 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-950 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg transition-all disabled:opacity-50"
+          aria-label="Refresh food comments">
+          ↻ Refresh comments
+        </button>
         <p id="commentSyncStatus" class="hidden text-red-500 text-xs mb-3" role="status"></p>
 
         <!-- Post form (shown only during meal window) -->
@@ -286,6 +291,11 @@
         <span class="text-xs font-bold text-gray-400 uppercase tracking-wide flex-shrink-0">Filter:</span>
         <input id="cab-filter" type="text" placeholder="Search by destination..."
           class="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 transition-all" />
+        <button id="cab-refresh-btn" type="button"
+          class="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-green-100 dark:hover:bg-green-950 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg transition-all whitespace-nowrap disabled:opacity-50"
+          aria-label="Refresh cab requests">
+          ↻ Refresh
+        </button>
       </div>
 
       <!-- Posts list -->

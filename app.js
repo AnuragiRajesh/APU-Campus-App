@@ -843,8 +843,6 @@ let state = {
 };
 
 let userSelectedMainTab = false;
-let currentMainTab = 'shuttle';
-
 
 // ─────────────────────────────────────────
 // 3. FOOD MENU
@@ -1203,24 +1201,19 @@ function initComments() {
   });
 
   let refreshInProgress = false;
-  const refreshSelectedComments = async () => {
-    if (currentMainTab !== 'menu' || document.visibilityState !== 'visible' || refreshInProgress) return;
+  const refreshButton = document.getElementById('comment-refresh-btn');
+  refreshButton.addEventListener('click', async () => {
+    if (refreshInProgress) return;
     refreshInProgress = true;
+    refreshButton.disabled = true;
+    refreshButton.textContent = 'Refreshing…';
     try {
       await renderComments(dateStrForDayIndex(state.menu.day), state.menu.meal, false);
     } finally {
       refreshInProgress = false;
+      refreshButton.disabled = false;
+      refreshButton.textContent = '↻ Refresh comments';
     }
-  };
-
-  // Poll the active section every minute; JSONBin does not provide push updates.
-  setInterval(refreshSelectedComments, 60000);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') refreshSelectedComments();
-  });
-
-  document.addEventListener('apu:main-tab-change', event => {
-    if (event.detail === 'menu') refreshSelectedComments();
   });
 }
 
@@ -1472,7 +1465,6 @@ function initMainTabs() {
 }
 
 function switchMainTab(tabId) {
-  currentMainTab = tabId;
   document.querySelectorAll('.main-tab').forEach(tab => {
     const isActive = tab.dataset.tab === tabId;
     tab.classList.toggle('tab-active', isActive);
@@ -1485,8 +1477,6 @@ function switchMainTab(tabId) {
     panel.classList.toggle('hidden', !isActive);
     if (isActive) panel.classList.add('fade-up');
   });
-
-  document.dispatchEvent(new CustomEvent('apu:main-tab-change', { detail: tabId }));
 }
 
 
@@ -1710,8 +1700,13 @@ function renderCabPosts(filterText = '', savedPosts = cabPostsCache) {
 }
 
 async function refreshCabPosts() {
-  if (document.visibilityState !== 'visible' || cabRefreshInProgress) return;
+  if (cabRefreshInProgress) return;
   cabRefreshInProgress = true;
+  const refreshButton = document.getElementById('cab-refresh-btn');
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = 'Refreshing…';
+  }
   if (!cabHasLoaded) setSyncStatus('cab-sync-status', 'Loading cab requests…');
   try {
     cabPostsCache = await loadCabPosts();
@@ -1725,6 +1720,10 @@ async function refreshCabPosts() {
     setSyncStatus('cab-sync-status', error.message, true);
   } finally {
     cabRefreshInProgress = false;
+    if (refreshButton) {
+      refreshButton.disabled = false;
+      refreshButton.textContent = '↻ Refresh';
+    }
   }
 }
 
@@ -1839,18 +1838,8 @@ function initCabShare() {
     renderCabPosts(e.target.value);
   });
 
+  document.getElementById('cab-refresh-btn').addEventListener('click', refreshCabPosts);
   refreshCabPosts();
-
-  // Poll the active section every minute; JSONBin does not provide push updates.
-  setInterval(() => {
-    if (currentMainTab === 'cabshare') refreshCabPosts();
-  }, 60000);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && currentMainTab === 'cabshare') refreshCabPosts();
-  });
-  document.addEventListener('apu:main-tab-change', event => {
-    if (event.detail === 'cabshare') refreshCabPosts();
-  });
 }
 
 function showCabError(el, msg) {
