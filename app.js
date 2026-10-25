@@ -1023,6 +1023,47 @@ const RATING_LABELS = ['', '😣 Terrible', '😕 Not great', '😐 It\'s okay',
 
 let selectedRating = 0;
 let commentRenderSequence = 0;
+let visibleCommentCount = 12;
+let loadedCommentsKey = '';
+let loadedComments = [];
+
+function renderCommentList(comments, isOpen, isExpired) {
+  const listEl = document.getElementById('commentList');
+  const emptyEl = document.getElementById('commentEmpty');
+  const loadPreviousButton = document.getElementById('loadPreviousComments');
+
+  if (comments.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.classList.toggle('hidden', !isOpen || isExpired);
+    loadPreviousButton.classList.add('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+
+  const visibleComments = comments.slice(-visibleCommentCount);
+  listEl.innerHTML = visibleComments.map(c => {
+    const stars = c.rating ? '⭐'.repeat(c.rating) : '';
+    const name  = c.name || 'Anonymous';
+    const initials = name.charAt(0).toUpperCase();
+    return `
+      <div class="flex gap-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 fade-up">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500
+                    flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-0.5">
+          ${initials}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold text-sm">${escHtml(name)}</span>
+            ${stars ? `<span class="text-sm">${stars}</span>` : ''}
+            <span class="text-xs text-gray-400 dark:text-gray-600 ml-auto">${timeAgoComment(c.postedAt)}</span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5 leading-relaxed">${escHtml(c.text)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+  loadPreviousButton.classList.toggle('hidden', visibleComments.length >= comments.length);
+}
 
 async function renderComments(dateStr, meal, showLoading = true) {
   const renderSequence = ++commentRenderSequence;
@@ -1031,8 +1072,6 @@ async function renderComments(dateStr, meal, showLoading = true) {
 
   const formEl      = document.getElementById('commentForm');
   const closedEl    = document.getElementById('commentClosed');
-  const listEl      = document.getElementById('commentList');
-  const emptyEl     = document.getElementById('commentEmpty');
   const windowLabel = document.getElementById('commentWindowLabel');
   const countEl     = document.getElementById('commentCount');
 
@@ -1048,6 +1087,12 @@ async function renderComments(dateStr, meal, showLoading = true) {
   }
   if (renderSequence !== commentRenderSequence) return;
   setSyncStatus('commentSyncStatus', '');
+  const commentsKey = commentKey(dateStr, meal);
+  if (commentsKey !== loadedCommentsKey) {
+    loadedCommentsKey = commentsKey;
+    visibleCommentCount = 12;
+  }
+  loadedComments = comments;
 
   // Window label
   windowLabel.textContent = windowDesc(meal);
@@ -1080,36 +1125,7 @@ async function renderComments(dateStr, meal, showLoading = true) {
   countEl.textContent = comments.length > 0 ? `${comments.length} comment${comments.length > 1 ? 's' : ''}` : '';
   countEl.classList.toggle('hidden', comments.length === 0);
 
-  // Render list
-  if (comments.length === 0) {
-    listEl.innerHTML = '';
-    emptyEl.classList.toggle('hidden', !isOpen || isExpired);
-    return;
-  }
-  emptyEl.classList.add('hidden');
-
-  listEl.innerHTML = comments.map(c => {
-    const stars = c.rating ? '⭐'.repeat(c.rating) : '';
-    const name  = c.name || 'Anonymous';
-    const initials = name.charAt(0).toUpperCase();
-    const ago   = timeAgoComment(c.postedAt);
-    return `
-      <div class="flex gap-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 fade-up">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500
-                    flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-0.5">
-          ${initials}
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="font-semibold text-sm">${escHtml(name)}</span>
-            ${stars ? `<span class="text-sm">${stars}</span>` : ''}
-            <span class="text-xs text-gray-400 dark:text-gray-600 ml-auto">${ago}</span>
-          </div>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5 leading-relaxed">${escHtml(c.text)}</p>
-        </div>
-      </div>
-    `;
-  }).join('');
+  renderCommentList(comments, isOpen, isExpired);
 }
 
 function timeAgoComment(ts) {
@@ -1120,6 +1136,16 @@ function timeAgoComment(ts) {
 }
 
 function initComments() {
+  document.getElementById('loadPreviousComments').addEventListener('click', () => {
+    visibleCommentCount += 12;
+    const dateStr = dateStrForDayIndex(state.menu.day);
+    renderCommentList(
+      loadedComments,
+      isCommentWindowOpen(state.menu.meal, dateStr),
+      isCommentWindowExpired(state.menu.meal, dateStr)
+    );
+  });
+
   // Star rating interaction
   const stars = document.querySelectorAll('.star-btn');
   const label = document.getElementById('ratingLabel');
