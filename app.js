@@ -52,6 +52,9 @@ async function fetchJsonBin(url, options, operation) {
   try {
     response = await fetch(url, options);
   } catch (error) {
+    if (window.location.protocol === 'file:') {
+      throw new Error('This app was opened as a file. Run `vercel dev` and open the local URL it prints to use comments and cab requests.');
+    }
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
       `Could not reach Vercel API proxy. ${detail}`
@@ -1206,7 +1209,7 @@ function initComments() {
     if (refreshInProgress) return;
     refreshInProgress = true;
     refreshButton.disabled = true;
-    refreshButton.textContent = 'Refreshing…';
+    refreshButton.textContent = 'Refreshing comments…';
     try {
       await renderComments(dateStrForDayIndex(state.menu.day), state.menu.meal, false);
     } finally {
@@ -1705,7 +1708,7 @@ async function refreshCabPosts() {
   const refreshButton = document.getElementById('cab-refresh-btn');
   if (refreshButton) {
     refreshButton.disabled = true;
-    refreshButton.textContent = 'Refreshing…';
+    refreshButton.textContent = 'Refreshing requests…';
   }
   if (!cabHasLoaded) setSyncStatus('cab-sync-status', 'Loading cab requests…');
   try {
