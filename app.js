@@ -1022,7 +1022,7 @@ const RATING_LABELS = ['', '😣 Terrible', '😕 Not great', '😐 It\'s okay',
 let selectedRating = 0;
 let commentRenderSequence = 0;
 
-async function renderComments(dateStr, meal) {
+async function renderComments(dateStr, meal, showLoading = true) {
   const renderSequence = ++commentRenderSequence;
   const isOpen      = isCommentWindowOpen(meal, dateStr);
   const isExpired   = isCommentWindowExpired(meal, dateStr);
@@ -1034,7 +1034,7 @@ async function renderComments(dateStr, meal) {
   const windowLabel = document.getElementById('commentWindowLabel');
   const countEl     = document.getElementById('commentCount');
 
-  setSyncStatus('commentSyncStatus', 'Loading comments…');
+  if (showLoading) setSyncStatus('commentSyncStatus', 'Loading comments…');
   let comments;
   try {
     comments = await loadComments(dateStr, meal);
@@ -1201,11 +1201,24 @@ function initComments() {
     if (e.key === 'Enter') document.getElementById('commentSubmit').click();
   });
 
-  // Auto-refresh every 60s (prune expired, update "X min ago")
+  let refreshInProgress = false;
+  const refreshSelectedComments = async () => {
+    if (document.visibilityState !== 'visible' || refreshInProgress) return;
+    refreshInProgress = true;
+    try {
+      await renderComments(dateStrForDayIndex(state.menu.day), state.menu.meal, false);
+    } finally {
+      refreshInProgress = false;
+    }
+  };
+
+  // Poll while the page is visible; JSONBin does not provide push updates.
   setInterval(() => {
-    const dateStr = dateStrForDayIndex(state.menu.day);
-    renderComments(dateStr, state.menu.meal);
-  }, 60000);
+    refreshSelectedComments();
+  }, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshSelectedComments();
+  });
 }
 
 
@@ -1549,6 +1562,8 @@ function setFooterYear() {
 // 9. CAB SHARE
 // ─────────────────────────────────────────
 let cabPostsCache = [];
+let cabRefreshInProgress = false;
+let cabHasLoaded = false;
 
 function validateCabPosts(record) {
   if (!Array.isArray(record)) {
@@ -1689,9 +1704,12 @@ function renderCabPosts(filterText = '', savedPosts = cabPostsCache) {
 }
 
 async function refreshCabPosts() {
-  setSyncStatus('cab-sync-status', 'Loading cab requests…');
+  if (document.visibilityState !== 'visible' || cabRefreshInProgress) return;
+  cabRefreshInProgress = true;
+  if (!cabHasLoaded) setSyncStatus('cab-sync-status', 'Loading cab requests…');
   try {
     cabPostsCache = await loadCabPosts();
+    cabHasLoaded = true;
     setSyncStatus('cab-sync-status', '');
     renderCabPosts(document.getElementById('cab-filter').value);
     if (cabPostsCache.some(post => !isPostExpired(post)) && !userSelectedMainTab) {
@@ -1699,6 +1717,8 @@ async function refreshCabPosts() {
     }
   } catch (error) {
     setSyncStatus('cab-sync-status', error.message, true);
+  } finally {
+    cabRefreshInProgress = false;
   }
 }
 
@@ -1815,8 +1835,11 @@ function initCabShare() {
 
   refreshCabPosts();
 
-  // Refresh posts every 60s so updates from other users appear and expired posts are removed.
-  setInterval(refreshCabPosts, 60000);
+  // Poll while visible; JSONBin does not provide push updates.
+  setInterval(refreshCabPosts, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshCabPosts();
+  });
 }
 
 function showCabError(el, msg) {
